@@ -1228,6 +1228,22 @@ async function callAI(type, payload){
   return data;
 }
 
+// 全局计时器管理
+var _timers = {};
+function startTimer(key, btnId){
+  var elapsed = 0;
+  var btn = document.getElementById(btnId);
+  _timers[key] = setInterval(function(){
+    elapsed += 3;
+    if(btn && elapsed <= 60){
+      btn.textContent = '⏳ 处理中… ' + elapsed + 's';
+    }
+  }, 3000);
+}
+function stopTimer(key){
+  if(_timers[key]){ clearInterval(_timers[key]); delete _timers[key]; }
+}
+
 // ============================================================
 //  单道错题
 // ============================================================
@@ -1241,6 +1257,7 @@ async function generateSingle(){
 
   showLoading('single', true);
   disableBtn('btn-single', true);
+  startTimer('single', 'btn-single');
 
   try{
     var res = await callAI('single', {
@@ -1259,6 +1276,7 @@ async function generateSingle(){
   }catch(e){
     showToast(e.message, 'error');
   }finally{
+    stopTimer('single');
     showLoading('single', false);
     disableBtn('btn-single', false);
   }
@@ -1273,6 +1291,7 @@ async function generateBatch(){
 
   showLoading('batch', true);
   disableBtn('btn-batch', true);
+  startTimer('batch', 'btn-batch');
 
   try{
     var res = await callAI('batch', {questions:questions});
@@ -1286,6 +1305,7 @@ async function generateBatch(){
   }catch(e){
     showToast(e.message, 'error');
   }finally{
+    stopTimer('batch');
     showLoading('batch', false);
     disableBtn('btn-batch', false);
   }
@@ -1454,6 +1474,7 @@ async function generateReview(){
 
   showLoading('review', true);
   disableBtn('btn-review', true);
+  startTimer('review', 'btn-review');
 
   try{
     var res = await callAI('review', {module:module});
@@ -1468,6 +1489,7 @@ async function generateReview(){
   }catch(e){
     showToast(e.message, 'error');
   }finally{
+    stopTimer('review');
     showLoading('review', false);
     disableBtn('btn-review', false);
   }

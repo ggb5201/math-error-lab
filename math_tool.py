@@ -44,12 +44,12 @@ MODEL_EP_ID = os.environ.get("ARK_MODEL_EP_ID", "doubao-seed-2-1-pro-260628")
 # 若留空则复用 MODEL_EP_ID（前提是该模型支持视觉理解）
 VISION_MODEL_EP_ID = os.environ.get("ARK_VISION_MODEL_EP_ID", "")
 ARK_API_URL = "https://ark.cn-beijing.volces.com/api/v3/chat/completions"
-AI_TIMEOUT = 180          # AI 请求超时（秒）
-AI_MAX_TOKENS = 4096      # AI 最大输出 token 数
+AI_TIMEOUT = 120          # AI 请求超时（秒）
+AI_MAX_TOKENS = 2048      # AI 最大输出 token 数（降低以加速响应）
 AI_TEMPERATURE = 0.7      # AI 采样温度
 OCR_MAX_IMAGE_SIZE = 5 * 1024 * 1024   # OCR 图片上限 5MB（压缩后应远小于此）
-OCR_TIMEOUT = 60                         # OCR 请求超时（秒），独立于 AI 生成
-OCR_MAX_TOKENS = 1024                    # OCR 输出上限（识别文字不需要太多）
+OCR_TIMEOUT = 45                         # OCR 请求超时（秒），独立于 AI 生成
+OCR_MAX_TOKENS = 800                     # OCR 输出上限（识别文字不需要太多）
 
 # 服务配置
 PORT = int(os.environ.get("PORT", "8000"))
@@ -226,6 +226,7 @@ def call_ark_api(messages):
         "messages": messages,
         "temperature": AI_TEMPERATURE,
         "max_tokens": AI_MAX_TOKENS,
+        "thinking": {"type": "disabled"},  # 关闭深度思考，加速响应
     }).encode("utf-8")
 
     req = urllib.request.Request(ARK_API_URL, data=body, headers=headers, method="POST")
