@@ -47,7 +47,9 @@ ARK_API_URL = "https://ark.cn-beijing.volces.com/api/v3/chat/completions"
 AI_TIMEOUT = 180          # AI 请求超时（秒）
 AI_MAX_TOKENS = 4096      # AI 最大输出 token 数
 AI_TEMPERATURE = 0.7      # AI 采样温度
-OCR_MAX_IMAGE_SIZE = 10 * 1024 * 1024  # OCR 图片上限 10MB
+OCR_MAX_IMAGE_SIZE = 5 * 1024 * 1024   # OCR 图片上限 5MB（压缩后应远小于此）
+OCR_TIMEOUT = 60                         # OCR 请求超时（秒），独立于 AI 生成
+OCR_MAX_TOKENS = 1024                    # OCR 输出上限（识别文字不需要太多）
 
 # 服务配置
 PORT = int(os.environ.get("PORT", "8000"))
@@ -288,14 +290,14 @@ def call_ark_vision_api(image_data_url, prompt_text):
             }
         ],
         "temperature": 0.1,   # OCR 识别用低温度，提高准确率
-        "max_tokens": 2048,
+        "max_tokens": OCR_MAX_TOKENS,  # 识别文字不需要太多输出
         "thinking": {"type": "disabled"},  # OCR 不需要深度思考，关闭以加速响应
     }).encode("utf-8")
 
     req = urllib.request.Request(ARK_API_URL, data=body, headers=headers, method="POST")
 
     try:
-        with urllib.request.urlopen(req, timeout=AI_TIMEOUT) as resp:
+        with urllib.request.urlopen(req, timeout=OCR_TIMEOUT) as resp:
             result = json.loads(resp.read().decode("utf-8"))
             return result["choices"][0]["message"]["content"]
     except urllib.error.HTTPError as e:

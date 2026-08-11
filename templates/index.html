@@ -1322,8 +1322,8 @@ document.getElementById('ocr-file').addEventListener('change', function(e){
   btnOcr.disabled = true;
   btnOcr.textContent = '📷 压缩中…';
 
-  // 压缩图片后再上传
-  compressImage(file, 1600, 0.85, function(compressedDataUrl){
+  // 压缩图片后再上传（OCR 不需要高分辨率，1024px + 0.65 质量足够识别文字）
+  compressImage(file, 1024, 0.65, function(compressedDataUrl){
     // 显示预览
     document.getElementById('ocr-preview').src = compressedDataUrl;
     document.getElementById('ocr-preview-wrap').style.display = 'block';
@@ -1388,6 +1388,15 @@ async function doOcr(imageDataUrl){
   btnOcr.disabled = true;
   btnOcr.textContent = '📷 识别中…';
 
+  // 进度提示定时器
+  var elapsed = 0;
+  var progressTimer = setInterval(function(){
+    elapsed += 3;
+    if(elapsed <= 30){
+      btnOcr.textContent = '📷 识别中… ' + elapsed + 's';
+    }
+  }, 3000);
+
   try{
     var resp = await fetch('/api/ocr', {
       method:'POST',
@@ -1414,6 +1423,7 @@ async function doOcr(imageDataUrl){
   }catch(e){
     showToast(e.message, 'error');
   }finally{
+    clearInterval(progressTimer);
     ocrLoading.style.display = 'none';
     btnOcr.disabled = false;
     btnOcr.textContent = '📷 拍照/上传识别';
